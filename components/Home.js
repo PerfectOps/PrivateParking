@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { View, Alert, ActivityIndicator, ImageBackground, BackHandler, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let iconNo = require('./assets/iconNo.png');
 let iconYes = require('./assets/iconYes.png');
@@ -11,7 +12,8 @@ export default class Home extends Component {
         this.state = {
             userName: '',
             emailVerifiedIcon: null,
-            emailVerifiedText: ''
+            emailVerifiedText: '',
+            parking: ''
         }
     }
 
@@ -43,8 +45,26 @@ export default class Home extends Component {
 
     componentDidMount() {
         this.onAuthStateChanged();
+        this.ControlParking();
         // let sub = auth().onAuthStateChanged();
         // console.log(sub);
+    }
+
+    componentDidUpdate() {
+        
+    }
+
+    ControlParking = () => {
+        AsyncStorage.getItem('parking').then((value) => {
+            if (value == null) {
+                AsyncStorage.setItem('parking', 'false');
+            }
+            console.log(value);
+            this.setState({
+                parking: value
+            })
+        }).done();
+        
     }
 
     SignOut = () => {
@@ -63,6 +83,9 @@ export default class Home extends Component {
                     <View style={{alignItems:'center', justifyContent: 'space-between', flex:1, flexDirection: 'row'}}>
                         <Image source={this.state.emailVerifiedIcon} style={{width: 80, height: 80, marginLeft:10}} />
                         <Text style={styles.textTitle}>{this.state.emailVerifiedText}</Text>
+                    </View>
+                    <View style={{alignItems:'center', justifyContent: 'center', flex:1, flexDirection: 'row'}}>
+                        <Text style={styles.textTitle}>{this.state.parking}</Text>
                     </View>
                 </View>
                 <View style={{alignItems:'flex-start', justifyContent: 'flex-end', flex:1, margin: 15}}>

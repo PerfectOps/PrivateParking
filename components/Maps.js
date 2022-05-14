@@ -58,15 +58,15 @@ export default class Maps extends Component {
             try {
                 const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                     {
-                        'title': 'Cool Location App required Location permission',
-                        'message': 'We required Location permission in order to get device location ' +
-                            'Please grant us.'
+                        'title': 'Разрешение для Private Parking',
+                        'message': "Приложению Private Parking требуется доступ к вашему местоположению " +
+                                "чтобы вы могли полноценно пользоваться приложением."
                     }
                 )
                 if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                     //   alert("You've access for the location");
                 } else {
-                    alert("You don't have access for the location");
+                    Alert.alert("Вы не дали доступ к местоположению", "Перейдите в настройки приложения и дайте разрешение на использование местоположения.");
                 }
             } catch (err) {
                 alert(err)
@@ -85,8 +85,9 @@ export default class Maps extends Component {
             }
             else {
                 let link = documentSnapshot.data();
-                Object.keys(link).forEach(key => { 
-                    marker.push([key, link[key]]) 
+                console.log('maps: ', link);
+                Object.keys(link.coodinate).forEach(key => { 
+                    marker.push([key, link.coodinate[key]]) 
                 })
                 console.log('address marker firestore: ', marker.map(mark => console.log(mark[1][0])));
                 this.setState({
@@ -191,9 +192,11 @@ export default class Maps extends Component {
     render() {
         if (this.state.marker == undefined) {
             return (
-                <View style={{alignItems:'center', justifyContent: 'space-around', flex:1}}>
-                    <ActivityIndicator size="large" color="#00ff00" />
-                </View>
+                <ImageBackground style={{width:'100%', height:'100%'}} source={require('./assets/background.png')}>
+                    <View style={{alignItems:'center', justifyContent: 'space-around', flex:1}}>
+                        <ActivityIndicator size="large" color="#00ff00" />
+                    </View>
+                </ImageBackground>
             )
         } else if (this.state.verifyEmail == true) {
             return (
