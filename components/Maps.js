@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { YaMap, Animation, Marker } from 'react-native-yamap';
 import firestore from '@react-native-firebase/firestore';
 import ActionSheet, { SheetManager } from "react-native-actions-sheet";
-import BackgroundTimer from 'react-native-background-timer';
 import auth from '@react-native-firebase/auth';
+import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 
 YaMap.init('b37481d4-ebd4-45f6-9379-f130139dd549');
 // Geocoder.init('d3f72065-ba03-461e-b90b-429823953264');
@@ -24,7 +24,8 @@ export default class Maps extends Component {
             dataMarker: [],
             parkLot: [],
             verifyEmail: false,
-            traffic: false
+            traffic: false,
+            reserv: 'Забронируйте место'
         }
         this.map = React.createRef();
     }
@@ -86,8 +87,8 @@ export default class Maps extends Component {
             else {
                 let link = documentSnapshot.data();
                 console.log('maps: ', link);
-                Object.keys(link.coodinate).forEach(key => { 
-                    marker.push([key, link.coodinate[key]]) 
+                Object.keys(link.coordinate).forEach(key => { 
+                    marker.push([key, link.coordinate[key]]) 
                 })
                 console.log('address marker firestore: ', marker.map(mark => console.log(mark[1][0])));
                 this.setState({
@@ -178,15 +179,33 @@ export default class Maps extends Component {
             console.log('error', this.map);
         }
     };
-
+    
     ReservLot = () => {
-        Alert.alert('Lot a reserv!')
-        const timeoutId = BackgroundTimer.setTimeout(() => {
-            // this will be executed once after 10 seconds
-            // even when app is the the background
-            Alert.alert('Lot dont reserv!');
-            BackgroundTimer.clearTimeout(timeoutId);
-        }, 900000);
+        Alert.alert('Бронирование', 'За вами забронировано место на 30мин.')
+        ReactNativeForegroundService.start({
+            id: 144,
+            title: 'Бронирование парковки',
+            message: 'Место на парковке '+ this.state.dataMarker[0] +' забронировано',
+        });
+        this.setState({
+            reserv: 'Отменить бронирование'
+        })
+        ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
+            delay: 1000,
+            onLoop: false,
+            taskId: 'reserv',
+            onError: (e) => console.log(`Error logging:`, e),
+            onSuccess: () => {
+                setTimeout(() => {
+                    Alert.alert('Бронь снята.', 'Время бронирования закончилось.');
+                    this.setState({
+                        reserv:'Забронируйте место'
+                    });
+                    ReactNativeForegroundService.remove_task('reserv');
+                    ReactNativeForegroundService.stop();
+                }, 900000);
+            }
+        });
     }
 
     render() {
@@ -212,7 +231,7 @@ export default class Maps extends Component {
                         </View>
                         <View style={{marginBottom: 40}}>
                             <TouchableOpacity onPress={() => this.ReservLot()}>
-                                <Text style={styles.reserv}>Забронировать место</Text>
+                                <Text style={styles.reserv}>{this.state.reserv}</Text>
                             </TouchableOpacity>
                         </View>
                     </ActionSheet>
@@ -291,7 +310,8 @@ var styles = StyleSheet.create({
         backgroundColor:'orange',
         textAlign:'center',
         fontWeight:'bold',
-        borderRadius: 15
+        borderRadius: 15,
+        paddingHorizontal:20
     },
     textWrong: {
         fontSize: 18,

@@ -4,6 +4,8 @@ import QRCodeScanner from 'react-native-qrcode-scanner';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReactNativeForegroundService from '@supersami/rn-foreground-service';
+import { add } from 'react-native-reanimated';
 
 // const cameraPermission = Camera.getCameraPermissionStatus();
 // const newCameraPermission = Camera.requestCameraPermission();
@@ -16,7 +18,8 @@ export default class QR extends Component {
             result: '',
             scan: true,
             address: [],
-            data: {}
+            data: {},
+            login: ''
         }
     }
 
@@ -29,7 +32,8 @@ export default class QR extends Component {
     VerifyEmail = () => {
         if (auth().currentUser.emailVerified !== false) {
             this.setState({
-                verifyEmail: true
+                verifyEmail: true,
+                login: auth().currentUser.email
             })
         }
         else {
@@ -81,8 +85,9 @@ export default class QR extends Component {
                 this.setState({
                     data: link
                 })
-                Object.keys(link).forEach(key => { 
-                    addressArr.push([key, link[key]]) 
+                console.log('parking ', this.state.data);
+                Object.keys(link.coordinate).forEach(key => { 
+                    addressArr.push([key, link.coordinate[key]]) 
                 })
                 addressArr.map(mark => address.push(mark[0]));
                 this.setState({
@@ -93,15 +98,14 @@ export default class QR extends Component {
         });
     };
 
-    ScanQRCode = (e) => {
+    ScanQRCode = (result) => {
         let address = this.state.address;
         let data = this.state.data;
-        console.log('scan ', e);
-        // AsyncStorage.getItem('parking', 'false');
-        // console.log('parking ', parking);
-        if (address.includes(e) == true) {
+        let getDate = new Date();
+        console.log('result ', result);
+        console.log('data ', data);
+        if (address.includes(result) == true) {
             AsyncStorage.getItem('parking').then((value) => {
-                console.log('parking ', value);
                 this.setState({
                     scan: false
                 })
@@ -111,50 +115,94 @@ export default class QR extends Component {
                     })
                 }, 3000);
                 if (value !== 'false') {
-                    if (e == value) {
-                        data.Вавилон[3] = data.Вавилон[3] + 1;
+                    if (result == value) {
+                        data.coordinate[result][3] = data.coordinate[result][3] + 1;
                         this.setState({
                             data: data
                         })
-                        console.log('data ', data);
+                        console.log('data1 ', this.state.data.coordinate);
                         firestore()
                             .collection('address1')
                             .doc('r958l80MBiGEZufawkVG')
                             .update({
-                                'coordinate': this.state.data
+                                'coordinate': this.state.data.coordinate
                             })
                             .then(() => {
                                 console.log('User updated!');
                             });
+
+                        let addOutput = { parking: [this.state.login, result, '"'+getDate.getDay() + "." + getDate.getMonth() + "." + getDate.getFullYear()+'"', 
+                            '"'+getDate.getHours() + ":" + getDate.getMinutes() + ":" + getDate.getSeconds()+'"' ]};
+                        console.log('addOutput ', addOutput);
+                        firestore()
+                            .collection('history')
+                            .add({
+                                exit: addOutput
+                            })
+                            .then(() => {
+                                console.log('User added!');
+                            });
                         AsyncStorage.setItem('parking', 'false');
-                        this.props.navigation.navigate('Home', {control: true});
+                        this.EndTook();
                         return;
-                    } else if (e !== value) {
+                    } else if (result !== value) {
                         Alert.alert('', 'У вас уже есть занятое место на другой парковке.');
                         return;
                     }
                 } else {
-                    AsyncStorage.setItem('parking', e);
-                    data.Вавилон[3] = data.Вавилон[3] - 1;
+                    AsyncStorage.setItem('parking', result);
+                    data.coordinate[result][3] = data.coordinate[result][3] - 1;
                     this.setState({
                         data: data
                     })
-                    console.log('data ', data);
+                    console.log('data2 ', this.state.data.coordinate);
                     firestore()
                         .collection('address1')
                         .doc('r958l80MBiGEZufawkVG')
                         .update({
-                            'coordinate': this.state.data
+                            'coordinate': this.state.data.coordinate
                         })
                         .then(() => {
                             console.log('User updated!');
                         });
-                    this.props.navigation.navigate('Home', {control: true});
+                    
+                    let addInput = { result: [this.state.login, result, '"'+getDate.getDay() + "." + getDate.getMonth() + "." + getDate.getFullYear()+'"', 
+                                    '"'+getDate.getHours() + ":" + getDate.getMinutes() + ":" + getDate.getSeconds()+'"' ]};
+                    console.log('addInput ', addInput);
+                    firestore()
+                        .collection('history')
+                        .add({
+                            entry: addInput
+                        })
+                        .then(() => {
+                            console.log('User added!');
+                        });
+                    this.StartTook(result);
                 }
             }).done();
         } else {
             Alert.alert('', 'Такой парковки еще нет.')
         }
+    }
+
+    StartTook = (place) => {
+        ReactNativeForegroundService.start({
+            id: 144,
+            title: 'Парковка '+place+'',
+            message: 'Место на парковке '+ place +' занято',
+        });
+        ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
+            delay: 1000,
+            onLoop: false,
+            taskId: 'parking',
+            onError: (e) => console.log(`Error logging:`, e),
+            onSuccess: () => {  }
+        });
+    }
+
+    EndTook = () => {
+        ReactNativeForegroundService.remove_task('parking');
+        ReactNativeForegroundService.stop();
     }
 
     render() {

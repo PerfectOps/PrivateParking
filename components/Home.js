@@ -84,9 +84,6 @@ export default class Home extends Component {
                         <Image source={this.state.emailVerifiedIcon} style={{width: 80, height: 80, marginLeft:10}} />
                         <Text style={styles.textTitle}>{this.state.emailVerifiedText}</Text>
                     </View>
-                    <View style={{alignItems:'center', justifyContent: 'center', flex:1, flexDirection: 'row'}}>
-                        <Text style={styles.textTitle}>{this.state.parking}</Text>
-                    </View>
                 </View>
                 <View style={{alignItems:'flex-start', justifyContent: 'flex-end', flex:1, margin: 15}}>
                     <TouchableOpacity onPress={() => this.SignOut()}>
