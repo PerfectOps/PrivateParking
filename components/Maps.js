@@ -184,10 +184,10 @@ export default class Maps extends Component {
     ReservLot = () => {
         let data = this.state.data;
         AsyncStorage.getItem('parking').then((value) => {
-            if (value == 'false') {
+            if (value == 'false') { // Проверка на то что пользователь не находится на парковке на данный момент
                 AsyncStorage.getItem('reserved').then((reserved) => {
-                    if (data.coordinate[this.state.dataMarker[0]][3] < data.coordinate[this.state.dataMarker[0]][2]) {
-                        if (reserved == 'false') {
+                    if (data.coordinate[this.state.dataMarker[0]][3] < data.coordinate[this.state.dataMarker[0]][2]) { // Если парковочных мест хватает
+                        if (reserved == 'false') { // Если сейчас нет брони
                             AsyncStorage.setItem('reserved', this.state.dataMarker[0]);
                             Alert.alert('Бронирование', 'За вами забронировано место на 30мин.')
                             ReactNativeForegroundService.start({
@@ -283,7 +283,7 @@ export default class Maps extends Component {
                         id="card_marker"
                         gestureEnabled={true}
                         // onBeforeShow={data => {this.setState({dataMarker: data}); console.log(this.state.dataMarker)}}
-                        >
+                        >   
                         <View style={{marginBottom: 80}}>
                             <Text style={styles.popupText}>{this.state.dataMarker[0]}</Text>
                             <Text style={styles.popupText}>Количество мест: {this.state.parkLot[0]} из {this.state.parkLot[1]}</Text>

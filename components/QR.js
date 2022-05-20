@@ -6,9 +6,6 @@ import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 
-// const cameraPermission = Camera.getCameraPermissionStatus();
-// const newCameraPermission = Camera.requestCameraPermission();
-
 export default class QR extends Component {
     constructor(props){
         super(props);
@@ -28,6 +25,7 @@ export default class QR extends Component {
         this.PermissionCam();
     }
 
+    // Проверка верификации почты
     VerifyEmail = () => {
         if (auth().currentUser.emailVerified !== false) {
             this.setState({
@@ -44,6 +42,7 @@ export default class QR extends Component {
         }
     }
 
+    // Запрос разрешения пользования камерой
     async PermissionCam() {
         const chckCameraPermission = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
         if (chckCameraPermission === PermissionsAndroid.RESULTS.GRANTED) {
@@ -68,6 +67,7 @@ export default class QR extends Component {
         }
     };
 
+    // Получение данных о парковках с бд
     GetParkItem = () => {
         let addressArr = [];
         let address = [];
@@ -97,14 +97,15 @@ export default class QR extends Component {
         });
     };
 
+    // Сканирование qr кода, на вход подаем название парковки
     ScanQRCode = (result) => {
         let address = this.state.address;
         let data = this.state.data;
         let getDate = new Date();
         console.log('result ', result);
         console.log('data ', data);
-        if (address.includes(result) == true) {
-            if (data.coordinate[result][3] < data.coordinate[result][2]) {
+        if (address.includes(result) == true) { // Проверка на наличие такой парковки в бд
+            if (data.coordinate[result][3] < data.coordinate[result][2]) { // Проверка на заполненность парковки
                 AsyncStorage.getItem('parking').then((value) => {
                     this.setState({
                         scan: false
@@ -115,9 +116,9 @@ export default class QR extends Component {
                         })
                     }, 3000);
                     AsyncStorage.getItem('reserved').then((reserved) => {
-                        if (reserved == 'false') {
-                            if (value !== 'false') {
-                                if (result == value) {
+                        if (reserved == 'false') { // Блок если бронирования нет
+                            if (value !== 'false') { // Если на данный момент парковка занята
+                                if (result == value) {  // Если отсканированный код соответствует занятой парковке
                                     data.coordinate[result][3] = data.coordinate[result][3] + 1;
                                     this.setState({
                                         data: data
@@ -151,7 +152,7 @@ export default class QR extends Component {
                                     Alert.alert('', 'У вас уже есть занятое место на другой парковке.');
                                     return;
                                 }
-                            } else {
+                            } else { // Парковка не занята
                                 AsyncStorage.setItem('parking', result);
                                 data.coordinate[result][3] = data.coordinate[result][3] - 1;
                                 this.setState({
@@ -182,8 +183,8 @@ export default class QR extends Component {
                                 this.StartTook(result);
                             }
                             return;
-                        } else {
-                            if (result == reserved) {
+                        } else { // Если есть бронирование
+                            if (result == reserved) { // Если забронированное место такое же как парковка на въезд
                                 AsyncStorage.setItem('reserved', 'false');
                                 AsyncStorage.setItem('parking', result);
                                 ReactNativeForegroundService.remove_task('reserv');
@@ -202,7 +203,7 @@ export default class QR extends Component {
                                     .then(() => {
                                         console.log('User added!');
                                     });
-                            } else {
+                            } else { // Если пользователь решил поехать с бронью на другую парковку
                                 AsyncStorage.setItem('reserved', 'false');
                                 AsyncStorage.setItem('parking', result);
                                 ReactNativeForegroundService.remove_task('reserv');
