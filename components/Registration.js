@@ -23,14 +23,6 @@ export default class Registration extends Component {
     }
 
     CreateUser = async (email, password) => {
-        const actionCodeSettings = {
-            handleCodeInApp: true,
-            url: 'https://privateparking-6b163.firebaseapp.com/__/auth/action?mode=action&oobCode=code',
-            android: {
-                installApp: true,
-                packageName: 'com.privatep.parking',
-            },
-        };
         try {
           let response = await auth().createUserWithEmailAndPassword(
             email,

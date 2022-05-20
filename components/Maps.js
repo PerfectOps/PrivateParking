@@ -6,12 +6,9 @@ import firestore from '@react-native-firebase/firestore';
 import ActionSheet, { SheetManager } from "react-native-actions-sheet";
 import auth from '@react-native-firebase/auth';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-YaMap.init('b37481d4-ebd4-45f6-9379-f130139dd549');
-// Geocoder.init('d3f72065-ba03-461e-b90b-429823953264');
-
-// YaMap.getLocale(); 
-// YaMap.setLocale('ru_RU'); // 'ru_RU'
+YaMap.init('b37481d4-ebd4-45f6-9379-f130139dd549'); // ключ API MapKit
 
 export default class Maps extends Component {
     constructor(props){
@@ -25,7 +22,8 @@ export default class Maps extends Component {
             parkLot: [],
             verifyEmail: false,
             traffic: false,
-            reserv: 'Забронируйте место'
+            data: {},
+            reserv: 'Бронирование'
         }
         this.map = React.createRef();
     }
@@ -87,6 +85,9 @@ export default class Maps extends Component {
             else {
                 let link = documentSnapshot.data();
                 console.log('maps: ', link);
+                this.setState({
+                    data: link
+                })
                 Object.keys(link.coordinate).forEach(key => { 
                     marker.push([key, link.coordinate[key]]) 
                 })
@@ -181,31 +182,89 @@ export default class Maps extends Component {
     };
     
     ReservLot = () => {
-        Alert.alert('Бронирование', 'За вами забронировано место на 30мин.')
-        ReactNativeForegroundService.start({
-            id: 144,
-            title: 'Бронирование парковки',
-            message: 'Место на парковке '+ this.state.dataMarker[0] +' забронировано',
-        });
-        this.setState({
-            reserv: 'Отменить бронирование'
-        })
-        ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
-            delay: 1000,
-            onLoop: false,
-            taskId: 'reserv',
-            onError: (e) => console.log(`Error logging:`, e),
-            onSuccess: () => {
-                setTimeout(() => {
-                    Alert.alert('Бронь снята.', 'Время бронирования закончилось.');
-                    this.setState({
-                        reserv:'Забронируйте место'
-                    });
-                    ReactNativeForegroundService.remove_task('reserv');
-                    ReactNativeForegroundService.stop();
-                }, 900000);
+        let data = this.state.data;
+        AsyncStorage.getItem('parking').then((value) => {
+            if (value == 'false') {
+                AsyncStorage.getItem('reserved').then((reserved) => {
+                    if (data.coordinate[this.state.dataMarker[0]][3] < data.coordinate[this.state.dataMarker[0]][2]) {
+                        if (reserved == 'false') {
+                            AsyncStorage.setItem('reserved', this.state.dataMarker[0]);
+                            Alert.alert('Бронирование', 'За вами забронировано место на 30мин.')
+                            ReactNativeForegroundService.start({
+                                id: 144,
+                                title: 'Бронирование парковки',
+                                message: 'Место на парковке '+ this.state.dataMarker[0] +' забронировано',
+                            });
+                            data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] - 1;
+                            this.setState({
+                                data: data
+                            })
+                            console.log('data1 ', this.state.data.coordinate);
+                            firestore()
+                                .collection('address1')
+                                .doc('r958l80MBiGEZufawkVG')
+                                .update({
+                                    'coordinate': this.state.data.coordinate
+                                })
+                                .then(() => {
+                                    console.log('User updated!');
+                                });
+                            ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
+                                delay: 1000,
+                                onLoop: false,
+                                taskId: 'reserv',
+                                onError: (e) => console.log(`Error logging:`, e),
+                                onSuccess: () => {
+                                    setTimeout(() => {
+                                        Alert.alert('Бронь снята.', 'Время бронирования закончилось.');
+                                        data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] - 1;
+                                        this.setState({
+                                            data: data
+                                        })
+                                        console.log('data1 ', this.state.data.coordinate);
+                                        firestore()
+                                            .collection('address1')
+                                            .doc('r958l80MBiGEZufawkVG')
+                                            .update({
+                                                'coordinate': this.state.data.coordinate
+                                            })
+                                            .then(() => {
+                                                console.log('User updated!');
+                                            });
+                                        ReactNativeForegroundService.remove_task('reserv');
+                                        ReactNativeForegroundService.stop();
+                                    }, 900000);
+                                }
+                            });
+                            return;
+                        } else {
+                            AsyncStorage.setItem('reserved', 'false');
+                            data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] + 1;
+                            this.setState({
+                                data: data
+                            })
+                            console.log('data1 ', this.state.data.coordinate);
+                            firestore()
+                                .collection('address1')
+                                .doc('r958l80MBiGEZufawkVG')
+                                .update({
+                                    'coordinate': this.state.data.coordinate
+                                })
+                                .then(() => {
+                                    console.log('User updated!');
+                                });
+                            ReactNativeForegroundService.remove_task('reserv');
+                            ReactNativeForegroundService.stop();
+                        }
+                    } else {
+                        Alert.alert('Отмена', 'Свободных мест на парковке нет. Бронирование невозможно.')
+                    }
+                }).done();
+            } else {
+                Alert.alert('Невозможно.', 'Вы уже находитесь на парковке.');
             }
-        });
+        }).done();
+        
     }
 
     render() {

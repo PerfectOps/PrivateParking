@@ -14,10 +14,10 @@ export default class Auth extends Component {
     }
 
     componentDidMount() {
-        this.ChechAuth();
+        this.CheckAuth();
     }
 
-    ChechAuth = () => {
+    CheckAuth = () => {
         console.log(auth().currentUser);
         if (auth().currentUser !== null) {
             console.log('auth');
@@ -48,7 +48,7 @@ export default class Auth extends Component {
                 this.props.navigation.navigate('HomeStack');
             }
         } catch (e) {
-                Alert.alert('', 'Пользователь не найден');
+            Alert.alert('', 'Пользователь не найден');
         }
     }
 
