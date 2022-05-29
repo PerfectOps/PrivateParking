@@ -264,7 +264,6 @@ export default class Maps extends Component {
                 Alert.alert('Невозможно.', 'Вы уже находитесь на парковке.');
             }
         }).done();
-        
     }
 
     render() {
@@ -276,7 +275,7 @@ export default class Maps extends Component {
                     </View>
                 </ImageBackground>
             )
-        } else if (this.state.verifyEmail == true) {
+        } else {
             return (
                 <View style={{flex: 1}}>
                     <ActionSheet 
@@ -304,7 +303,7 @@ export default class Maps extends Component {
                         >
                         {this.state.marker.map(mark => <Marker 
                                                             point={{lon: mark[1][0], lat: mark[1][1]}} 
-                                                            scale={0.8} 
+                                                            scale={1} 
                                                             source={require('./assets/iconMarker.png')}
                                                             onPress={() => this.OpenCardMarker(mark)}
                                                         />)}
@@ -321,33 +320,19 @@ export default class Maps extends Component {
                             <Image source={require('./assets/iconDayandnight.png')} style={{width: 50, height: 50}} />
                         </TouchableOpacity>
                     </View>
-                    <View style={{position: 'absolute', bottom: 50, right: 20}}>
+                    <View style={{position: 'absolute', bottom: 80, right: 20}}>
                         <SafeAreaView />
                         <TouchableOpacity onPress={this.zoomUp}>
-                            <Text style={styles.plus}>+</Text>
+                            <Text style={styles.plus1}>+</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={{position: 'absolute', bottom: 30, right: 20}}>
                         <SafeAreaView />
                         <TouchableOpacity onPress={this.zoomDown}>
-                            <Text style={styles.plus}>-</Text>
+                            <Text style={styles.plus}>—</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
-            )
-        } else {
-            return (
-                <ImageBackground style={{width:'100%', height:'100%'}} source={require('./assets/background.png')}>
-                    <View style={{alignItems:'center', justifyContent: 'flex-start', flex:2}}>
-                        <Image source={require('./assets/logo1.png')} style={{width:100, height: 100}} />
-                    </View>
-                    <View style={{alignItems:'center', justifyContent: 'flex-start', flex:1}}>
-                        <Text style={styles.textWrong}>Для начала верифицируйте свой аккаунт!</Text>
-                    </View>
-                    <View style={{flex: 1}}>
-
-                    </View>
-                </ImageBackground>
             )
         }
     }
@@ -355,7 +340,26 @@ export default class Maps extends Component {
 
 var styles = StyleSheet.create({
     plus: {
-        fontSize:25
+        fontSize:30,
+        color:'black',
+        backgroundColor:'rgba(255, 255, 255, 0.4)',
+        fontWeight:'bold',
+        paddingHorizontal:5,
+        borderColor:'black',
+        borderWidth:1,
+        borderRadius:15,
+        textAlign:'center'
+    },
+    plus1: {
+        fontSize:30,
+        color:'black',
+        backgroundColor:'rgba(255, 255, 255, 0.4)',
+        fontWeight:'bold',
+        paddingHorizontal:10,
+        borderColor:'black',
+        borderWidth:1,
+        borderRadius:15,
+        textAlign:'center'
     },
     popupText: {
         fontSize: 25, 

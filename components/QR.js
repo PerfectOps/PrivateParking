@@ -257,7 +257,15 @@ export default class QR extends Component {
                 Alert.alert('Отмена', 'Свободных мест на парковке нет. Пожалуйста развернитесь.')
             }
         } else {
-            Alert.alert('', 'Такой парковки еще нет.')
+            Alert.alert('', 'Такой парковки еще нет.');
+            this.setState({
+                scan: false
+            })
+            setTimeout(() => {
+                this.setState({
+                    scan: true
+                })
+            }, 3000);
         }
     }
 
@@ -282,7 +290,6 @@ export default class QR extends Component {
     }
 
     render() {
-        if (this.state.verifyEmail == true) {
         return (
             <ImageBackground style={{width:'100%', height:'100%'}} source={require('./assets/background.png')}>
                 <SafeAreaView style={{flex: 1}}>
@@ -290,22 +297,13 @@ export default class QR extends Component {
                     contentInsetAdjustmentBehavior="automatic"
                     >
                     <View style={{flex:1}}>
-                        <View style={{alignItems:'center', justifyContent: 'flex-start', flex:1}}>
-                            <Text style={styles.centerText}>{this.state.result}</Text>
-                        </View>
                         { this.state.scan &&
                         <View style={{flex:1, alignItems:'center'}}>
                             <QRCodeScanner
-                            reactivate={true}
-                            showMarker={true}
-                            // ref={(node) => { this.scanner = node }}
-                            onRead={(e) => this.ScanQRCode(e.data)}
-                            containerStyle={{height:'100%'}}
-                            // topContent={
-                            //     <Text style={styles.centerText}>
-                            //     Scan your QRCode!
-                            //     </Text>
-                            // }
+                                reactivate={true}
+                                showMarker={true}
+                                onRead={(e) => this.ScanQRCode(e.data)}
+                                // containerStyle={{height:'100%'}}
                             />
                         </View>
                         }
@@ -314,21 +312,6 @@ export default class QR extends Component {
                 </SafeAreaView>
             </ImageBackground>
         );
-        } else {
-            return (
-                <ImageBackground style={{width:'100%', height:'100%'}} source={require('./assets/background.png')}>
-                    <View style={{alignItems:'center', justifyContent: 'flex-start', flex:2}}>
-                        <Image source={require('./assets/logo1.png')} style={{width:100, height: 100}} />
-                    </View>
-                    <View style={{alignItems:'center', justifyContent: 'flex-start', flex:1}}>
-                        <Text style={styles.textWrong}>Для начала верифицируйте свой аккаунт!</Text>
-                    </View>
-                    <View style={{flex: 1}}>
-
-                    </View>
-                </ImageBackground>
-            )
-        }
     }
 }
 
