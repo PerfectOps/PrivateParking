@@ -8,7 +8,7 @@ import auth from '@react-native-firebase/auth';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-YaMap.init('Ключ API Яндекс MapKit'); // ключ API MapKit
+YaMap.init('b37481d4-ebd4-45f6-9379-f130139dd549'); // ключ API MapKit
 
 export default class Maps extends Component {
     constructor(props){
@@ -186,6 +186,7 @@ export default class Maps extends Component {
         AsyncStorage.getItem('parking').then((value) => {
             if (value == 'false') { // Проверка на то что пользователь не находится на парковке на данный момент
                 AsyncStorage.getItem('reserved').then((reserved) => {
+                    console.log('reserved: ', reserved);
                     if (data.coordinate[this.state.dataMarker[0]][3] < data.coordinate[this.state.dataMarker[0]][2]) { // Если парковочных мест хватает
                         if (reserved == 'false') { // Если сейчас нет брони
                             AsyncStorage.setItem('reserved', this.state.dataMarker[0]);
@@ -197,7 +198,8 @@ export default class Maps extends Component {
                             });
                             data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] - 1;
                             this.setState({
-                                data: data
+                                data: data,
+                                reserv: 'Отменить бронь'
                             })
                             console.log('data1 ', this.state.data.coordinate);
                             firestore()
@@ -209,17 +211,21 @@ export default class Maps extends Component {
                                 .then(() => {
                                     console.log('User updated!');
                                 });
+                            let task = 0;
                             ReactNativeForegroundService.add_task(() => console.log('I am Being Tested'), {
-                                delay: 1000,
-                                onLoop: false,
+                                delay: 1800000,
+                                onLoop: true,
                                 taskId: 'reserv',
                                 onError: (e) => console.log(`Error logging:`, e),
                                 onSuccess: () => {
-                                    setTimeout(() => {
-                                        Alert.alert('Бронь снята.', 'Время бронирования закончилось.');
-                                        data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] - 1;
+                                    if (task == 0) {
+                                        task = 1;
+                                    } else {
+                                        AsyncStorage.setItem('reserved', 'false');
+                                        data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] + 1;
                                         this.setState({
-                                            data: data
+                                            data: data,
+                                            reserv: 'Бронирование'
                                         })
                                         console.log('data1 ', this.state.data.coordinate);
                                         firestore()
@@ -229,16 +235,27 @@ export default class Maps extends Component {
                                                 'coordinate': this.state.data.coordinate
                                             })
                                             .then(() => {
-                                                console.log('User updated!');
+                                                console.log('Бронь снята!');
                                             });
                                         ReactNativeForegroundService.remove_task('reserv');
                                         ReactNativeForegroundService.stop();
-                                    }, 900000);
+                                        ReactNativeForegroundService.start({
+                                            id: 144,
+                                            title: 'Бронирование парковки',
+                                            message: 'Время бронирования истекло!'
+                                        })
+                                        setTimeout(() => {
+                                            ReactNativeForegroundService.stop();
+                                        }, 10000);
+                                    }
                                 }
                             });
                             return;
                         } else {
                             AsyncStorage.setItem('reserved', 'false');
+                            this.setState({
+                                reserv: 'Бронирование'
+                            })
                             data.coordinate[this.state.dataMarker[0]][3] = data.coordinate[this.state.dataMarker[0]][3] + 1;
                             this.setState({
                                 data: data
@@ -251,7 +268,7 @@ export default class Maps extends Component {
                                     'coordinate': this.state.data.coordinate
                                 })
                                 .then(() => {
-                                    console.log('User updated!');
+                                    console.log('Бронь снята руками!');
                                 });
                             ReactNativeForegroundService.remove_task('reserv');
                             ReactNativeForegroundService.stop();
@@ -271,7 +288,7 @@ export default class Maps extends Component {
             return (
                 <ImageBackground style={{width:'100%', height:'100%'}} source={require('./assets/background.png')}>
                     <View style={{alignItems:'center', justifyContent: 'space-around', flex:1}}>
-                        <ActivityIndicator size="large" color="#00ff00" />
+                        <ActivityIndicator size="large" color="black" />
                     </View>
                 </ImageBackground>
             )
@@ -303,7 +320,7 @@ export default class Maps extends Component {
                         >
                         {this.state.marker.map(mark => <Marker 
                                                             point={{lon: mark[1][0], lat: mark[1][1]}} 
-                                                            scale={1} 
+                                                            scale={2} 
                                                             source={require('./assets/iconMarker.png')}
                                                             onPress={() => this.OpenCardMarker(mark)}
                                                         />)}

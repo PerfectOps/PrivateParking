@@ -134,7 +134,7 @@ export default class QR extends Component {
                                             console.log('User updated!');
                                         });
             
-                                    let addOutput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + getDate.getMonth() + "." + getDate.getFullYear()+'"', 
+                                    let addOutput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + ((getDate.getMonth())+1) + "." + getDate.getFullYear()+'"', 
                                         '"'+getDate.getHours() + ":" + getDate.getMinutes() + ":" + getDate.getSeconds()+'"' ]};
                                     console.log('addOutput ', addOutput);
                                     firestore()
@@ -169,7 +169,7 @@ export default class QR extends Component {
                                         console.log('User updated!');
                                     });
                                 
-                                let addInput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + getDate.getMonth() + "." + getDate.getFullYear()+'"', 
+                                let addInput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + ((getDate.getMonth())+1) + "." + getDate.getFullYear()+'"', 
                                                 '"'+getDate.getHours() + ":" + getDate.getMinutes() + ":" + getDate.getSeconds()+'"' ]};
                                 console.log('addInput ', addInput);
                                 firestore()
@@ -192,7 +192,7 @@ export default class QR extends Component {
                                 setTimeout(() => {
                                     this.StartTook(result);
                                 }, 1000);
-                                let addInput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + getDate.getMonth() + "." + getDate.getFullYear()+'"', 
+                                let addInput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + ((getDate.getMonth())+1) + "." + getDate.getFullYear()+'"', 
                                                 '"'+getDate.getHours() + ":" + getDate.getMinutes() + ":" + getDate.getSeconds()+'"' ]};
                                 console.log('addInput ', addInput);
                                 firestore()
@@ -236,7 +236,7 @@ export default class QR extends Component {
                                         console.log('User updated!');
                                     });
                                 
-                                let addInput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + getDate.getMonth() + "." + getDate.getFullYear()+'"', 
+                                let addInput = { parking: [this.state.login, result, '"'+getDate.getDate() + "." + ((getDate.getMonth())+1) + "." + getDate.getFullYear()+'"', 
                                                 '"'+getDate.getHours() + ":" + getDate.getMinutes() + ":" + getDate.getSeconds()+'"' ]};
                                 console.log('addInput ', addInput);
                                 firestore()

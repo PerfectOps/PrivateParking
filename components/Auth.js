@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { View, ActivityIndicator, ImageBackground, BackHandler, StyleSheet, Text, Image, TextInput, TouchableOpacity, SafeAreaView, Dimensions, Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from "@react-native-community/netinfo";
 
 // class Authentification screen
 export default class Auth extends Component {
@@ -19,12 +20,20 @@ export default class Auth extends Component {
 
     CheckAuth = () => {
         console.log(auth().currentUser);
-        if (auth().currentUser !== null) {
-            console.log('auth');
-            this.props.navigation.navigate('HomeStack');
-        } else {
-            return;
-        }
+        const unsubscribe = NetInfo.addEventListener(state => {
+            console.log("Is connected?", state.isConnected);
+            if (state.isConnected == true) {
+                if (auth().currentUser !== null) {
+                    console.log('auth');
+                    this.props.navigation.navigate('HomeStack');
+                } else {
+                    return;
+                }
+            } else {
+                Alert.alert('Ошибка', 'Отсутствует подключение к интернету.')
+            }
+          });
+        
     }
 
     Enter = () => {
@@ -48,7 +57,7 @@ export default class Auth extends Component {
                 this.props.navigation.navigate('HomeStack');
             }
         } catch (e) {
-            Alert.alert('', 'Пользователь не найден');
+            Alert.alert('', 'Пользователь не найден или отсутствует подключение к интернету.');
         }
     }
 
