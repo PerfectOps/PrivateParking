@@ -8,7 +8,7 @@ import auth from '@react-native-firebase/auth';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-YaMap.init('b37481d4-ebd4-45f6-9379-f130139dd549'); // ключ API MapKit
+YaMap.init('API_KEY_MAPKIT'); // ключ API MapKit
 
 export default class Maps extends Component {
     constructor(props){
